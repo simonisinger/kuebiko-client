@@ -1,0 +1,3 @@
+- 0.1.0: Initial Release 
+- 0.1.1: Fixed double slash bug in url generation
+- 0.1.2: Fixed version bug in the url generation
