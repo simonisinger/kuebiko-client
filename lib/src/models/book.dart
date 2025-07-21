@@ -134,7 +134,9 @@ class KuebikoBook implements Book {
     );
     http.Response res = await _httpClient.get(uri);
     Map metadata = jsonDecode(res.body)['book'];
-    metadata['series'] = await _cacheController.seriesCache.getById(metadata['series']['id']);
+    if (metadata['series'] != null) {
+      metadata['series'] = await _cacheController.seriesCache.getById(metadata['series']['id']);
+    }
     return metadata;
   }
 
