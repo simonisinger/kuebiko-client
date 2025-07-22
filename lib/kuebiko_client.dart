@@ -30,6 +30,7 @@ export 'src/models/smtp_config.dart' show SmtpConfig;
 export 'src/models/progress.dart' show Progress;
 export 'src/models/task.dart' show Task;
 export 'src/models/book_meta.dart' show BookMeta;
+export 'src/models/download.dart';
 export 'src/interfaces/book.dart';
 export 'src/interfaces/cache_controller.dart';
 export 'src/interfaces/library.dart';
