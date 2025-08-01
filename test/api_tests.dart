@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:image/image.dart';
 import 'package:kuebiko_client/kuebiko_client.dart';
+import 'package:kuebiko_client/src/models/upload.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:test/test.dart';
 import 'package:version/version.dart';
@@ -73,7 +74,7 @@ void main() async {
     expect(image.runtimeType, Image);
     List<Library> libraries = await client!.getLibraries();
     File file = File(Directory.current.path + Platform.pathSeparator + 'test' + Platform.pathSeparator + 'assets' + Platform.pathSeparator + 'pg84.epub');
-    book = await libraries.first.upload('pg84.epub', BookMeta(
+    KuebikoUpload upload = await libraries.first.upload('pg84.epub', BookMeta(
         name: 'pg84',
         volNumber: 1,
         releaseDate: DateTime.now(),
@@ -81,6 +82,7 @@ void main() async {
         language: 'en',
         maxPage: 255
     ),file.openRead(), file.lengthSync());
+    book = await upload.book;
     expect(book.runtimeType, Book);
   });
 

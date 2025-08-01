@@ -12,7 +12,7 @@ class KuebikoMultipartRequest extends http.MultipartRequest {
   @override
   Future<http.StreamedResponse> send() async {
     try {
-      var response = await client.send(this);
+      http.StreamedResponse response = await client.send(this);
       var stream = onDone(response.stream, client.close);
       return http.StreamedResponse(http.ByteStream(stream), response.statusCode,
           contentLength: response.contentLength,

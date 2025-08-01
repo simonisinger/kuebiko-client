@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:image/image.dart';
-import 'package:kuebiko_client/src/kuebiko_multipart_request.dart';
-import 'package:kuebiko_client/src/kuebiko_http_client.dart';
 import 'package:http/http.dart' as http;
-import 'package:kuebiko_client/src/models/download.dart';
-import 'package:kuebiko_client/src/models/progress.dart';
 
+import '../kuebiko_multipart_request.dart';
+import '../kuebiko_http_client.dart';
+import '../models/download.dart';
+import '../models/progress.dart';
+import '../models/upload.dart';
 import '../interfaces/book.dart';
 import '../interfaces/cache_controller.dart';
 import '../interfaces/library.dart';
@@ -24,14 +25,14 @@ class KuebikoBook implements Book {
   KuebikoBook(this.id, this._library, this.name, this._cacheController, this._httpClient);
 
 
-  static Future<KuebikoBook> upload(Library library, BookMeta meta, CacheController cacheController, KuebikoHttpClient httpClient, String filename, Stream<List<int>> fileStream, int fileLength) async {
+  static KuebikoUpload upload(Library library, BookMeta meta, CacheController cacheController, KuebikoHttpClient httpClient, String filename, Stream<List<int>> fileStream, int fileLength) {
     http.MultipartRequest req = KuebikoMultipartRequest(
         'POST',
         httpClient,
         httpClient.config.generateApiUri('/upload')
     );
 
-
+    fileStream = fileStream.asBroadcastStream();
     req.files.add(
         http.MultipartFile('book', fileStream, fileLength, filename: filename)
     );
@@ -43,15 +44,32 @@ class KuebikoBook implements Book {
     req.fields['number'] = meta.volNumber.toString();
     req.fields['max_page'] = meta.maxPage.toString();
 
-    http.StreamedResponse res = await req.send();
-    List<int> responseMergedRaw = [];
-    List<List<int>> responseRaw = await res.stream.toList();
-    responseRaw.forEach((List<int> list) => responseMergedRaw.addAll(list));
-    String responseContent = utf8.decode(responseMergedRaw);
-    print(responseContent);
-    Map jsonContent = jsonDecode(responseContent);
-    KuebikoBook book = KuebikoBook(jsonContent['bookId'], library, jsonContent['bookName'], cacheController, httpClient);
-    return book;
+    Future<Book> book = req.send()
+        .then((http.StreamedResponse stream) => stream.stream.toList())
+        .then((List<List<int>> responseRaw) {
+          List<int> responseMergedRaw = [];
+          responseRaw.forEach((List<int> list) => responseMergedRaw.addAll(list));
+          String responseContent = utf8.decode(responseMergedRaw);
+          Map jsonContent = jsonDecode(responseContent);
+          return KuebikoBook(
+              jsonContent['bookId'],
+              library,
+              jsonContent['bookName'],
+              cacheController,
+              httpClient
+          );
+        });
+
+    return KuebikoUpload(_getPercentageStream(fileStream, fileLength), book);
+  }
+
+  static Stream<double> _getPercentageStream(Stream<List<int>> fileStream, int length) async* {
+    int progress = 0;
+    double onePercent = length / 100;
+    await for (List<int> chunk in fileStream) {
+      progress += chunk.length;
+      yield progress / onePercent;
+    }
   }
 
   static getBooks(BookSorting sort, SortingDirection direction, CacheController cacheController, KuebikoHttpClient httpClient) async {
@@ -68,7 +86,7 @@ class KuebikoBook implements Book {
 
     List<Book> books = [];
 
-    for(int i = 0; i < bookRaw.length; i++){
+    for (int i = 0; i < bookRaw.length; i++) {
       Map book = bookRaw[i];
       Library library = await cacheController.libraryCache.getById(book['library']);
       books.add(KuebikoBook(book['id'], library, book['name'], cacheController, httpClient));

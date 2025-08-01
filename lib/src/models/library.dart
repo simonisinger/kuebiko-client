@@ -6,6 +6,7 @@ import 'package:kuebiko_client/src/kuebiko_http_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:kuebiko_client/src/models/book.dart';
 import 'package:kuebiko_client/src/models/series.dart';
+import 'package:kuebiko_client/src/models/upload.dart';
 
 import '../interfaces/book.dart';
 import '../interfaces/cache_controller.dart';
@@ -49,8 +50,8 @@ class KuebikoLibrary implements Library {
     return library;
   }
 
-  Future<Book> upload(String filename, BookMeta meta, Stream<List<int>> fileContent, int fileLength) async
-  => await KuebikoBook.upload(this, meta, _cacheController, _httpClient, filename, fileContent, fileLength);
+  KuebikoUpload upload(String filename, BookMeta meta, Stream<List<int>> fileContent, int fileLength)
+  => KuebikoBook.upload(this, meta, _cacheController, _httpClient, filename, fileContent, fileLength);
 
   void scan() {
     Uri uri = _httpClient.config.generateApiUri(

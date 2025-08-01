@@ -13,9 +13,7 @@ class KuebikoHttpClient extends http.BaseClient {
   final KuebikoConfig config;
   final http.Client _inner;
 
-  KuebikoHttpClient(this.config, this._inner) {
-
-  }
+  KuebikoHttpClient(this.config, this._inner);
 
   _errorCheck(http.Response response){
     switch(response.statusCode){
