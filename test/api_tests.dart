@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:image/image.dart';
 import 'package:kuebiko_client/kuebiko_client.dart';
@@ -70,7 +71,7 @@ void main() async {
     expect(convertStatus, 'waiting');
     book.delete();
     book.renewMetadata();
-    Image? image = await book.cover();
+    Uint8List image = await book.cover();
     expect(image.runtimeType, Image);
     List<Library> libraries = await client!.getLibraries();
     File file = File(Directory.current.path + Platform.pathSeparator + 'test' + Platform.pathSeparator + 'assets' + Platform.pathSeparator + 'pg84.epub');
