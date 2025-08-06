@@ -139,7 +139,7 @@ class KuebikoBook implements Book {
           'book': this.id.toString()
         }
     );
-    _httpClient.delete(uri);
+    await _httpClient.delete(uri);
   }
 
   Future<Map> metadata() async{
