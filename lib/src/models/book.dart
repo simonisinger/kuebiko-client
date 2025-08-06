@@ -131,7 +131,7 @@ class KuebikoBook implements Book {
     return jsonDecode(res.body)['status'];
   }
 
-  void delete() async {
+  Future<void> delete() async {
     Uri uri = _httpClient.config.generateApiUri(
         '/delete',
         queryParameters: {

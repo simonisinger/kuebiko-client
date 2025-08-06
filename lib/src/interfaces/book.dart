@@ -36,7 +36,7 @@ abstract interface class Book {
 
   Future<String> convertStatus(String convertId);
 
-  void delete();
+  Future<void> delete();
 
   Future<Map> metadata();
 
