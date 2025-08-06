@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:kuebiko_client/src/exception/client_upgrade_needed_exception.dart';
+import 'package:kuebiko_client/src/exception/file_not_found_exception.dart';
 import 'package:kuebiko_client/src/exception/invalid_key_exception.dart';
 import 'package:kuebiko_client/src/exception/missing_key_exception.dart';
 import 'package:kuebiko_client/src/exception/server_maintenance_exception.dart';
@@ -21,6 +22,8 @@ class KuebikoHttpClient extends http.BaseClient {
         throw MissingKeyException();
       case 403:
         throw InvalidKeyException();
+      case 404:
+        throw FileNotFoundException();
       case 426:
         Map json = jsonDecode(response.body);
         int ownVersion = int.parse(config.apiVersion.replaceAll('v', ''));
