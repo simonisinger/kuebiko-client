@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:image/image.dart';
 import 'package:http/http.dart' as http;
 
 import '../kuebiko_multipart_request.dart';
@@ -170,7 +170,7 @@ class KuebikoBook implements Book {
     _httpClient.put(uri);
   }
 
-  Future<Image?> cover() async{
+  Future<Uint8List> cover() async {
     Uri uri = this._httpClient.config.generateApiUri(
         '/cover',
         queryParameters: {
@@ -180,7 +180,7 @@ class KuebikoBook implements Book {
     );
 
     http.Response res = await _httpClient.get(uri);
-    return decodeImage(res.bodyBytes);
+    return res.bodyBytes;
   }
 
   Future<void> setProgress(Progress progress) async {

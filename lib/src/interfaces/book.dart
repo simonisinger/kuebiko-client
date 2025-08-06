@@ -1,4 +1,5 @@
-import 'package:image/image.dart';
+import 'dart:typed_data';
+
 import 'package:kuebiko_client/src/models/download.dart';
 
 import '../models/progress.dart';
@@ -41,7 +42,7 @@ abstract interface class Book {
 
   void renewMetadata();
 
-  Future<Image?> cover();
+  Future<Uint8List> cover();
 
   Future<void> setProgress(Progress progress);
 
