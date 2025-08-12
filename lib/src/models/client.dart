@@ -26,6 +26,10 @@ class KuebikoClient implements Client {
 
   bool _initialized = false;
 
+  KuebikoHttpClient get client => _client;
+
+  CacheController get cacheController => _cacheController;
+
   KuebikoClient(this._config) {
     _client = KuebikoHttpClient(_config, http.Client());
     _settings = Settings(_client);
