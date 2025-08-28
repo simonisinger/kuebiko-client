@@ -168,4 +168,19 @@ class KuebikoClient implements Client {
       _client,
       _cacheController
   );
+
+  @override
+  Future<void> delete() async {
+    http.Response res = await _client.get(_config.generateApiUri('/devices'));
+    Map data = jsonDecode(res.body);
+    Map device = data['devices'].firstWhere((device) => _config.deviceName == device['client']);
+    await _client.delete(
+        _config.generateApiUri(
+            '/token/delete',
+            queryParameters: {
+              'token': device['id'].toString()
+            }
+        )
+    );
+  }
 }

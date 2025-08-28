@@ -43,6 +43,8 @@ abstract interface class Client {
 
   Future<List<User>> getUsers();
 
+  Future<void> delete();
+
   Future<User> createUser(
       String email,
       String name,
