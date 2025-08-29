@@ -12,6 +12,7 @@ class KuebikoUser implements User {
   final int id;
   String _name;
   String _email;
+  String? _newPassword;
   List<String> _role;
   List<String> _changed = [];
   final KuebikoHttpClient _httpClient;
@@ -77,25 +78,23 @@ class KuebikoUser implements User {
     return KuebikoUser(json['user'], name, email, role, httpClient, cacheController);
   }
 
-  Future<void> update({String? password}) async {
+  Future<void> update(String password) async {
     Uri uri = _httpClient.config.generateApiUri('/user/edit');
 
-    Map data = {};
+    Map data = {
+      'password': password
+    };
 
-    if (password != null) {
-      data['password'] = password;
-    }
     _changed.forEach((String changedElement) {
       switch(changedElement){
         case 'name':
           data['name'] = _name;
-          break;
         case 'email':
           data['email'] = _email;
-          break;
         case 'role':
           data['role'] = _role;
-          break;
+        case 'newPassword':
+          data['newPassword'] = _newPassword;
       }
     });
 
@@ -184,9 +183,6 @@ class KuebikoUser implements User {
     }
     return books;
   }
-  String getEmail() => _email;
-  String getName() => _name;
-  List<String> getRoles() => _role;
 
   @override
   String get email => _email;
@@ -211,5 +207,11 @@ class KuebikoUser implements User {
   set roles(List<String> roles) {
     _role = roles;
     _changed.add('role');
+  }
+
+  @override
+  set newPassword(String newPassword) {
+    _newPassword = newPassword;
+    _role.add('newPassword');
   }
 }

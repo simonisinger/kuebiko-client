@@ -8,7 +8,7 @@ abstract interface class User {
 
   User(this.id, this._name, this._email, this._role);
 
-  Future<void> update({String? password});
+  Future<void> update(String passwords);
 
   Future<void> delete(String password);
 
@@ -26,4 +26,5 @@ abstract interface class User {
   void set roles(List<String> roles);
   void set name(String name);
   void set email(String email);
+  void set newPassword(String newPassword);
 }
