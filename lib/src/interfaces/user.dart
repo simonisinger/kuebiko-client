@@ -20,6 +20,8 @@ abstract interface class User {
 
   Future<List<Book>> finishedBooks();
 
+  Future<void> adminUpdate();
+
   String get email => _email;
   String get name => _name;
   List<String> get roles => _role;

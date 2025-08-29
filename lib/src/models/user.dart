@@ -79,11 +79,18 @@ class KuebikoUser implements User {
   }
 
   Future<void> update(String password) async {
-    Uri uri = _httpClient.config.generateApiUri('/user/edit');
+    Map<String, dynamic> data = _getChangedFields();
 
-    Map data = {
-      'password': password
-    };
+    data['password'] = password;
+
+    await _httpClient.put(
+        _httpClient.config.generateApiUri('/user/edit'),
+        data: data
+    );
+  }
+
+  Map<String, dynamic> _getChangedFields() {
+    Map<String, dynamic> data = {};
 
     _changed.forEach((String changedElement) {
       switch(changedElement){
@@ -98,8 +105,14 @@ class KuebikoUser implements User {
       }
     });
 
+    return data;
+  }
+
+  Future<void> adminUpdate() async {
+    Map<String, dynamic> data = _getChangedFields();
+
     await _httpClient.put(
-        uri,
+        _httpClient.config.generateApiUri('/user/$id/edit'),
         data: data
     );
   }
