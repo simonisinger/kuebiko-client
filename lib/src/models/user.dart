@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:kuebiko_client/src/interfaces/user.dart';
 import 'package:kuebiko_client/src/kuebiko_http_client.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:kuebiko_client/src/models/book.dart';
 
 import '../interfaces/book.dart';
@@ -21,8 +21,8 @@ class KuebikoUser implements User {
 
   static Future<List<User>> getAll(KuebikoHttpClient httpClient, CacheController cacheController) async {
     Uri uri = httpClient.config.generateApiUri('/users');
-    http.Response res = await httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List usersRaw = json['users'];
     return usersRaw.map((user) => KuebikoUser(
         user['id'],
@@ -36,8 +36,8 @@ class KuebikoUser implements User {
 
   static Future<User> currentUser(KuebikoHttpClient httpClient, CacheController cacheController) async {
     Uri uri = httpClient.config.generateApiUri('/user');
-    http.Response res = await httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     Map userRaw = json['user'];
     return KuebikoUser(
         userRaw['id'],
@@ -60,9 +60,9 @@ class KuebikoUser implements User {
       CacheController cacheController
       ) async {
     Uri uri = httpClient.config.generateApiUri('/user/create');
-    http.Response res = await httpClient.post(
+    Response res = await httpClient.post(
         uri,
-        body: {
+        data: {
           'email': email,
           'name': name,
           'password': password,
@@ -73,7 +73,7 @@ class KuebikoUser implements User {
           })
         }
     );
-    Map json = jsonDecode(res.body);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     return KuebikoUser(json['user'], name, email, role, httpClient, cacheController);
   }
 
@@ -99,7 +99,7 @@ class KuebikoUser implements User {
 
     _httpClient.put(
         uri,
-        body: data
+        data: data
     );
   }
 
@@ -107,7 +107,7 @@ class KuebikoUser implements User {
     Uri uri = _httpClient.config.generateApiUri('/user/delete');
     await _httpClient.delete(
         uri,
-        body: {
+        data: {
           'password': password
         }
     );
@@ -125,8 +125,8 @@ class KuebikoUser implements User {
 
   Future<List<Book>> unreadBooks() async {
     Uri uri = _httpClient.config.generateApiUri('/unread');
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List<Book> books = [];
 
     for (Map book in json['books']) {
@@ -145,8 +145,8 @@ class KuebikoUser implements User {
 
   Future<List<Book>> readingBooks() async {
     Uri uri = _httpClient.config.generateApiUri('/reading');
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List<Book> books = [];
 
     for (Map book in json['books']) {
@@ -165,8 +165,8 @@ class KuebikoUser implements User {
 
   Future<List<Book>> finishedBooks() async {
     Uri uri = _httpClient.config.generateApiUri('/finished');
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List<Book> books = [];
 
     for (Map book in json['books']) {

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:kuebiko_client/src/exception/no_parameter_exception.dart';
 import 'package:kuebiko_client/src/exception/no_smtp_password_exception.dart';
 import 'package:kuebiko_client/src/kuebiko_http_client.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:kuebiko_client/src/models/mysql_config.dart';
 import 'package:kuebiko_client/src/models/smtp_config.dart';
 import 'package:kuebiko_client/src/models/task.dart';
@@ -18,16 +18,18 @@ class Settings {
   // Returns the State of the Server as a String
   static Future<String> status(KuebikoHttpClient httpClient) async {
     Uri uri = httpClient.config.generateApiUri('/status');
-    http.Response res = await httpClient.get(uri);
-    return jsonDecode(res.body)['state'];
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
+    return json['state'];
   }
 
   // Returns the Url to the Docs document
   static Future<Uri> docs(KuebikoHttpClient httpClient) async {
     // TODO test method
     Uri uri = httpClient.config.generateApiUri('/docs');
-    http.Response res = await httpClient.get(uri);
-    return Uri.parse(jsonDecode(res.body)['doc']);
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
+    return Uri.parse(json['doc']);
   }
 
   /**
@@ -35,8 +37,8 @@ class Settings {
    */
   Future<Map<String,dynamic>> get() async {
     Uri uri = _httpClient.config.generateApiUri('/settings');
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     Map<String, dynamic> settingsRaw = json['settings'];
     SmtpConfig smtpConfig = SmtpConfig(
         host: Uri.parse(settingsRaw['smtp']['host']),
@@ -77,7 +79,7 @@ class Settings {
 
     Uri uri = _httpClient.config.generateApiUri('/settings');
 
-    await _httpClient.post(uri, body: settings);
+    await _httpClient.post(uri, data: settings);
   }
 
   // executes the setup command
@@ -112,9 +114,9 @@ class Settings {
       };
     }
 
-    http.Response res = await httpClient.post(
+    Response res = await httpClient.post(
         uri,
-        body: {
+        data: {
           'scan_interval': scanInterval.toString(),
           'smtp': jsonEncode({
             'host': smtpConfig.host.toString(),
@@ -135,13 +137,13 @@ class Settings {
           'anilist_token': anilistToken
         }
     );
-    print(res.body);
+    print(res.data);
   }
 
   Future<List<Task>> tasks() async {
     Uri uri = _httpClient.config.generateApiUri('/tasks');
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List tasksRaw = json['tasks'];
     return tasksRaw.map((e) => Task(
         id: e['id'],

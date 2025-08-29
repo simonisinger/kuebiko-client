@@ -5,7 +5,7 @@ description: The API Client library for the ebook library software Kuebiko
 environment:
   sdk: ^3.0.0
 dependencies: 
-  http: ^1.3.0
+  dio: ^5.4.0
   image: ^4.5.3
   version: ^3.0.2
 dev_dependencies: 

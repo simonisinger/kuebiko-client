@@ -1,4 +1,4 @@
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:kuebiko_client/src/exception/client_upgrade_needed_exception.dart';
 import 'package:kuebiko_client/src/exception/file_not_found_exception.dart';
 import 'package:kuebiko_client/src/exception/invalid_key_exception.dart';
@@ -9,15 +9,36 @@ import 'dart:convert';
 import 'package:kuebiko_client/src/kuebiko_config.dart';
 import 'package:kuebiko_client/src/models/download.dart';
 
-class KuebikoHttpClient extends http.BaseClient {
-
+class KuebikoHttpClient {
   final KuebikoConfig config;
-  final http.Client _inner;
+  late final Dio _dio;
 
-  KuebikoHttpClient(this.config, this._inner);
+  KuebikoHttpClient(this.config) {
+    _dio = Dio();
 
-  _errorCheck(http.Response response){
-    switch(response.statusCode){
+    // Configure interceptors
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          options.headers['User-Agent'] = config.appName + '/' +
+              config.appVersion.toString() + '(KuebikoDartClient/' +
+              config.libraryVersion.toString() + ') / ' + config.deviceName;
+          if (config.apiKey != null) {
+            options.headers['X-API-Key'] = config.apiKey!;
+          }
+          handler.next(options);
+        },
+        onError: (error, handler) {
+          _errorCheck(error);
+          handler.next(error);
+        },
+      ),
+    );
+  }
+
+  void _errorCheck(DioException error) {
+    final statusCode = error.response?.statusCode;
+    switch (statusCode) {
       case 401:
         throw MissingKeyException();
       case 403:
@@ -25,10 +46,12 @@ class KuebikoHttpClient extends http.BaseClient {
       case 404:
         throw FileNotFoundException();
       case 426:
-        Map json = jsonDecode(response.body);
+        Map json = error.response?.data is Map 
+            ? error.response!.data 
+            : jsonDecode(error.response?.data ?? '{}');
         int ownVersion = int.parse(config.apiVersion.replaceAll('v', ''));
-        int serverVersion = int.parse(json['version'].replaceAll('v',''));
-        if(ownVersion > serverVersion){
+        int serverVersion = int.parse(json['version'].replaceAll('v', ''));
+        if (ownVersion > serverVersion) {
           throw ServerUpgradeNeededException();
         } else {
           throw ClientUpgradeNeededException();
@@ -38,83 +61,113 @@ class KuebikoHttpClient extends http.BaseClient {
     }
   }
 
-  @override
-  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
-    http.Response res = await _sendUnstreamed('GET', url, headers);
-    _errorCheck(res);
-    return res;
+  Future<Response> get(Uri url, {Map<String, String>? headers}) async {
+    try {
+      return await _dio.get(
+        url.toString(),
+        options: Options(headers: headers),
+      );
+    } on DioException catch (e) {
+      _errorCheck(e);
+      rethrow;
+    }
   }
 
   Future<KuebikoDownload> getFile(Uri url, {Map<String, String>? headers}) async {
-    http.StreamedResponse response = await send(http.Request('GET', url));
-    return KuebikoDownload(stream: response.stream, length: response.contentLength!);
-  }
-
-
-  @override
-  Future<http.Response> post(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-    http.Response res = await _sendUnstreamed('POST', url, headers, body, encoding);
-    _errorCheck(res);
-    return res;
-  }
-
-
-  @override
-  Future<http.Response> put(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-    http.Response res = await _sendUnstreamed('PUT', url, headers, body, encoding);
-    _errorCheck(res);
-    return res;
-  }
-
-  @override
-  Future<http.Response> patch(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-    http.Response res = await _sendUnstreamed('PATCH', url, headers, body, encoding);
-    _errorCheck(res);
-    return res;
-  }
-
-  @override
-  Future<http.Response> delete(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-    http.Response res = await _sendUnstreamed('DELETE', url, headers, body, encoding);
-    _errorCheck(res);
-    return res;
-  }
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    request.headers['User-Agent'] = config.appName + '/' +
-        config.appVersion.toString() + '(KuebikoDartClient/' +
-        config.libraryVersion.toString() + ') / ' + config.deviceName;
-    if (config.apiKey != null) {
-      request.headers['X-API-Key'] = config.apiKey!;
+    try {
+      final response = await _dio.get<ResponseBody>(
+        url.toString(),
+        options: Options(
+          headers: headers,
+          responseType: ResponseType.stream,
+        ),
+      );
+      return KuebikoDownload(
+        stream: response.data!.stream,
+        length: int.parse(response.headers.value('content-length') ?? '0'),
+      );
+    } on DioException catch (e) {
+      _errorCheck(e);
+      rethrow;
     }
-    return _inner.send(request);
   }
 
-  /// Sends a non-streaming [Request] and returns a non-streaming [Response].
-  Future<http.Response> _sendUnstreamed(
-      String method, Uri url, Map<String, String>? headers,
-      [body, Encoding? encoding]) async {
-    var request = http.Request(method, url);
-
-    if (headers != null) request.headers.addAll(headers);
-    if (encoding != null) request.encoding = encoding;
-    if (body != null) {
-      if (body is String) {
-        request.body = body;
-      } else if (body is List) {
-        request.bodyBytes = body.cast<int>();
-      } else if (body is Map) {
-        request.bodyFields = body.cast<String, String>();
-      } else {
-        throw ArgumentError('Invalid request body "$body".');
-      }
+  Future<Response> post(Uri url,
+      {Map<String, String>? headers, dynamic data}) async {
+    try {
+      return await _dio.post(
+        url.toString(),
+        data: data,
+        options: Options(headers: headers),
+      );
+    } on DioException catch (e) {
+      _errorCheck(e);
+      rethrow;
     }
+  }
 
-    return http.Response.fromStream(await send(request));
+  Future<Response> put(Uri url,
+      {Map<String, String>? headers, dynamic data}) async {
+    try {
+      return await _dio.put(
+        url.toString(),
+        data: data,
+        options: Options(headers: headers),
+      );
+    } on DioException catch (e) {
+      _errorCheck(e);
+      rethrow;
+    }
+  }
+
+  Future<Response> patch(Uri url,
+      {Map<String, String>? headers, dynamic data}) async {
+    try {
+      return await _dio.patch(
+        url.toString(),
+        data: data,
+        options: Options(headers: headers),
+      );
+    } on DioException catch (e) {
+      _errorCheck(e);
+      rethrow;
+    }
+  }
+
+  Future<Response> delete(Uri url,
+      {Map<String, String>? headers, dynamic data}) async {
+    try {
+      return await _dio.delete(
+        url.toString(),
+        data: data,
+        options: Options(headers: headers),
+      );
+    } on DioException catch (e) {
+      _errorCheck(e);
+      rethrow;
+    }
+  }
+
+  Future<Response> uploadWithProgress(
+    String url,
+    FormData formData, {
+    Map<String, String>? headers,
+    required void Function(int sent, int total) onSendProgress,
+  }) async {
+    try {
+      return await _dio.post(
+        url,
+        data: formData,
+        options: Options(headers: headers),
+        onSendProgress: onSendProgress,
+      );
+    } on DioException catch (e) {
+      _errorCheck(e);
+      rethrow;
+    }
+  }
+
+  void close() {
+    _dio.close();
   }
 }

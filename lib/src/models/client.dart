@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 import '../caches/cache_controller.dart';
 import '../exception/server_maintenance_exception.dart';
@@ -31,7 +31,7 @@ class KuebikoClient implements Client {
   CacheController get cacheController => _cacheController;
 
   KuebikoClient(this._config) {
-    _client = KuebikoHttpClient(_config, http.Client());
+    _client = KuebikoHttpClient(_config);
     _settings = Settings(_client);
     _cacheController = KuebikoCacheController(_client);
 
@@ -61,13 +61,13 @@ class KuebikoClient implements Client {
 
     Uri loginUri = config.generateApiUri('/api-key');
     String encodedCredentials = base64.encode((username+':'+password).codeUnits);
-    http.Response res = await tmpClient._client.get(
+    Response res = await tmpClient._client.get(
         loginUri,
         headers: {
           'Authorization': 'Basic ' + encodedCredentials
         }
     );
-    Map resJson = jsonDecode(res.body);
+    Map resJson = res.data is Map ? res.data : jsonDecode(res.data.toString());
     config = KuebikoConfig(
         appName: config.appName,
         appVersion: config.appVersion,
@@ -171,8 +171,8 @@ class KuebikoClient implements Client {
 
   @override
   Future<void> delete() async {
-    http.Response res = await _client.get(_config.generateApiUri('/devices'));
-    Map data = jsonDecode(res.body);
+    Response res = await _client.get(_config.generateApiUri('/devices'));
+    Map data = res.data is Map ? res.data : jsonDecode(res.data.toString());
     Map device = data['devices'].firstWhere((device) => _config.deviceName == device['client']);
     await _client.delete(
         _config.generateApiUri(

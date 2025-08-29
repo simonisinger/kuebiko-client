@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:kuebiko_client/src/interfaces/library.dart';
 import 'package:kuebiko_client/src/kuebiko_http_client.dart';
 
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:kuebiko_client/src/models/book.dart';
 import 'package:kuebiko_client/src/models/series.dart';
 import 'package:kuebiko_client/src/models/upload.dart';
@@ -23,8 +23,8 @@ class KuebikoLibrary implements Library {
 
   static Future<List<Library>> getAll(CacheController cacheController, KuebikoHttpClient httpClient) async {
     Uri uri = httpClient.config.generateApiUri('/library');
-    http.Response res = await httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List rawLibrary = json['library'];
     return rawLibrary.map((library) => KuebikoLibrary(
         library['id'],
@@ -37,14 +37,14 @@ class KuebikoLibrary implements Library {
 
   static Future<Library> create(String name, String path, CacheController cacheController, KuebikoHttpClient httpClient) async {
     Uri uri = httpClient.config.generateApiUri('/library/create');
-    http.Response res = await httpClient.post(
+    Response res = await httpClient.post(
         uri,
-        body: {
+        data: {
           'path': path,
           'name': name
         }
     );
-    Map json = jsonDecode(res.body);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     Library library = KuebikoLibrary(json['library'], name, path, cacheController, httpClient);
     await cacheController.libraryCache.update();
     return library;
@@ -69,7 +69,7 @@ class KuebikoLibrary implements Library {
     );
     _httpClient.put(
         uri,
-        body: {
+        data: {
           'library': id.toString(),
           'name': name,
           'path': path
@@ -99,8 +99,8 @@ class KuebikoLibrary implements Library {
 
   Future<List<Series>> series() async {
     Uri uri = _httpClient.config.generateApiUri('/'+this.id.toString() + '/series');
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List seriesRaw = json['series'];
     return seriesRaw.map((seriesSingle) => Series(
         seriesSingle['id'],
@@ -128,8 +128,8 @@ class KuebikoLibrary implements Library {
         }
     );
 
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
 
     return json['books'].map<Book>((book) => KuebikoBook(
         book['id'],
@@ -147,8 +147,9 @@ class KuebikoLibrary implements Library {
           'path': path
         }
     );
-    http.Response res = await httpClient.get(uri);
-    return jsonDecode(res.body)['child'].cast<String>();
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
+    return json['child'].cast<String>();
   }
 
   static Future<void> createFolder(String path, KuebikoHttpClient httpClient) async {

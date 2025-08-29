@@ -2,7 +2,6 @@ library kuebiko_client;
 
 import 'dart:async';
 
-import 'package:http/http.dart' as http;
 import 'src/caches/cache_controller.dart';
 import 'src/interfaces/cache_controller.dart';
 import 'src/kuebiko_config.dart';
@@ -48,7 +47,7 @@ Future<void> setup({
   String? adminAnilistToken
 }) async {
 
-  KuebikoHttpClient httpClient = KuebikoHttpClient(config, http.Client());
+  KuebikoHttpClient httpClient = KuebikoHttpClient(config);
   CacheController cacheController = KuebikoCacheController(httpClient);
   KuebikoUser adminUser = KuebikoUser(
       0,

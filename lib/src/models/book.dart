@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
-import '../kuebiko_multipart_request.dart';
 import '../kuebiko_http_client.dart';
 import '../models/download.dart';
 import '../models/progress.dart';
@@ -26,50 +25,50 @@ class KuebikoBook implements Book {
 
 
   static KuebikoUpload upload(Library library, BookMeta meta, CacheController cacheController, KuebikoHttpClient httpClient, String filename, Stream<List<int>> fileStream, int fileLength) {
-    http.MultipartRequest req = KuebikoMultipartRequest(
-        'POST',
-        httpClient,
-        httpClient.config.generateApiUri('/upload')
-    );
+    final progressController = StreamController<double>();
 
-    fileStream = fileStream.asBroadcastStream();
-    req.files.add(
-        http.MultipartFile('book', fileStream, fileLength, filename: filename)
-    );
-    req.fields['library'] = library.id.toString();
-    req.fields['name'] = meta.name;
-    req.fields['language'] = meta.language;
-    req.fields['author'] = meta.author;
-    req.fields['release_date'] = meta.releaseDate.toString();
-    req.fields['number'] = meta.volNumber.toString();
-    req.fields['max_page'] = meta.maxPage.toString();
+    final formData = FormData.fromMap({
+      'book': MultipartFile.fromStream(
+        () => fileStream,
+        fileLength,
+        filename: filename,
+      ),
+      'library': library.id.toString(),
+      'name': meta.name,
+      'language': meta.language,
+      'author': meta.author,
+      'release_date': meta.releaseDate.toString(),
+      'number': meta.volNumber.toString(),
+      'max_page': meta.maxPage.toString(),
+    });
 
-    Future<Book> book = req.send()
-        .then((http.StreamedResponse stream) => stream.stream.toList())
-        .then((List<List<int>> responseRaw) {
-          List<int> responseMergedRaw = [];
-          responseRaw.forEach((List<int> list) => responseMergedRaw.addAll(list));
-          String responseContent = utf8.decode(responseMergedRaw);
-          Map jsonContent = jsonDecode(responseContent);
-          return KuebikoBook(
-              jsonContent['bookId'],
-              library,
-              jsonContent['bookName'],
-              cacheController,
-              httpClient
-          );
-        });
+    Future<Book> book = httpClient.uploadWithProgress(
+      httpClient.config.generateApiUri('/upload').toString(),
+      formData,
+      onSendProgress: (sent, total) {
+        if (total > 0) {
+          final percentage = (sent / total) * 100;
+          progressController.add(percentage);
+        }
+      },
+    ).then((Response response) {
+      progressController.close();
+      Map jsonContent = response.data is Map 
+          ? response.data 
+          : jsonDecode(response.data.toString());
+      return KuebikoBook(
+          jsonContent['bookId'],
+          library,
+          jsonContent['bookName'],
+          cacheController,
+          httpClient
+      );
+    }).catchError((error) {
+      progressController.close();
+      throw error;
+    });
 
-    return KuebikoUpload(_getPercentageStream(fileStream, fileLength), book);
-  }
-
-  static Stream<double> _getPercentageStream(Stream<List<int>> fileStream, int length) async* {
-    int progress = 0;
-    double onePercent = length / 100;
-    await for (List<int> chunk in fileStream) {
-      progress += chunk.length;
-      yield progress / onePercent;
-    }
+    return KuebikoUpload(progressController.stream, book);
   }
 
   static getBooks(BookSorting sort, SortingDirection direction, CacheController cacheController, KuebikoHttpClient httpClient) async {
@@ -80,8 +79,8 @@ class KuebikoBook implements Book {
           'direction': direction.toString()
         }
     );
-    http.Response res = await httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List bookRaw = json['books'];
 
     List<Book> books = [];
@@ -116,8 +115,9 @@ class KuebikoBook implements Book {
           'format': format.toString()
         }
     );
-    http.Response res = await _httpClient.put(uri);
-    return jsonDecode(res.body)['convertId'];
+    Response res = await _httpClient.put(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
+    return json['convertId'];
   }
 
   Future<String> convertStatus(String convertId) async {
@@ -127,8 +127,9 @@ class KuebikoBook implements Book {
           'convertId': convertId
         }
     );
-    http.Response res = await _httpClient.get(uri);
-    return jsonDecode(res.body)['status'];
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
+    return json['status'];
   }
 
   Future<void> delete() async {
@@ -150,8 +151,9 @@ class KuebikoBook implements Book {
           'book': id.toString()
         }
     );
-    http.Response res = await _httpClient.get(uri);
-    Map metadata = jsonDecode(res.body)['book'];
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
+    Map metadata = json['book'];
     if (metadata['series'] != null) {
       metadata['series'] = await _cacheController.seriesCache.getById(metadata['series']['id']);
     }
@@ -179,8 +181,14 @@ class KuebikoBook implements Book {
         }
     );
 
-    http.Response res = await _httpClient.get(uri);
-    return res.bodyBytes;
+    Response res = await _httpClient.get(uri);
+    if (res.data is Uint8List) {
+      return res.data;
+    } else if (res.data is List<int>) {
+      return Uint8List.fromList(res.data.cast<int>());
+    } else {
+      return Uint8List.fromList(res.data.toString().codeUnits);
+    }
   }
 
   Future<void> setProgress(Progress progress) async {
@@ -197,8 +205,8 @@ class KuebikoBook implements Book {
     Uri uri = this._httpClient.config.generateApiUri(
         '/' + _library.id.toString() + '/' + this.id.toString() + '/progress'
     );
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     if(json['reading_page'] is double){
       json['reading_page'] = json['reading_page'].toInt();
     }

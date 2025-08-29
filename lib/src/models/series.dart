@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:kuebiko_client/src/kuebiko_http_client.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:kuebiko_client/src/models/book.dart';
 
 import '../interfaces/book.dart';
@@ -50,8 +50,8 @@ class Series {
 
   static Future<List<Series>> getAll(CacheController cacheController, KuebikoHttpClient httpClient) async {
     Uri uri = httpClient.config.generateApiUri('/series');
-    http.Response res = await httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List seriesRaw = json['series'];
     return seriesRaw.map((seriesSingle) => Series(
         seriesSingle['id'],
@@ -86,9 +86,9 @@ class Series {
   }) async {
     // TODO test method
     Uri uri = httpClient.config.generateApiUri('/series/create');
-    http.Response res = await httpClient.post(
+    Response res = await httpClient.post(
         uri,
-        body: {
+        data: {
           'name': name,
           'author': author,
           'description': description,
@@ -101,7 +101,7 @@ class Series {
           'locked': locked
         }
     );
-    Map json = jsonDecode(res.body);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     return Series(
         json['series'],
         name,
@@ -178,7 +178,7 @@ class Series {
     Uri uri = _httpClient.config.generateApiUri('/series/update');
     _httpClient.put(
         uri,
-        body: {
+        data: {
           'series': id,
           'name': _name,
           'author': _author,
@@ -202,8 +202,8 @@ class Series {
           'direction': direction.name
         }
     );
-    http.Response res = await _httpClient.get(uri);
-    Map json = jsonDecode(res.body);
+    Response res = await _httpClient.get(uri);
+    Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
 
     List<Book> books = [];
 
