@@ -8,7 +8,7 @@ abstract interface class User {
 
   User(this.id, this._name, this._email, this._role);
 
- void update(String password);
+  Future<void> update({String? password});
 
   Future<void> delete(String password);
 
@@ -19,7 +19,11 @@ abstract interface class User {
   Future<List<Book>> readingBooks();
 
   Future<List<Book>> finishedBooks();
-  String getEmail() => _email;
-  String getName() => _name;
-  List<String> getRoles() => _role;
+
+  String get email => _email;
+  String get name => _name;
+  List<String> get roles => _role;
+  void set roles(List<String> roles);
+  void set name(String name);
+  void set email(String email);
 }

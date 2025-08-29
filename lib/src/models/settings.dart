@@ -102,8 +102,8 @@ class Settings {
     }
 
     Map adminMap = {
-      'email': adminUser.getEmail(),
-      'name': adminUser.getName(),
+      'email': adminUser.email,
+      'name': adminUser.name,
       'password': adminPassword
     };
 
