@@ -67,7 +67,7 @@ class KuebikoUser implements User {
           'email': email,
           'name': name,
           'password': password,
-          'role': role.join(','),
+          'role': jsonEncode(role),
           'anilist': jsonEncode({
             'name': anilistName,
             'token': anilistToken
