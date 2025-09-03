@@ -15,7 +15,7 @@ export 'src/models/book.dart' show KuebikoBook;
 export 'src/kuebiko_config.dart' show KuebikoConfig;
 export 'src/models/library.dart' show KuebikoLibrary;
 export 'src/models/mysql_config.dart' show MysqlConfig;
-export 'src/models/series.dart' show Series;
+export 'src/models/series.dart' show KuebikoSeries;
 export 'src/models/settings.dart' show Settings;
 export 'src/models/smtp_config.dart' show SmtpConfig;
 export 'src/models/progress.dart' show Progress;
@@ -31,6 +31,7 @@ export 'src/interfaces/library_cache.dart';
 export 'src/interfaces/series_cache.dart';
 export 'src/interfaces/user.dart';
 export 'src/interfaces/client.dart';
+export 'src/interfaces/series.dart';
 
 
 Future<void> setup({

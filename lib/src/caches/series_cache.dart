@@ -1,7 +1,8 @@
 import 'package:kuebiko_client/src/kuebiko_http_client.dart';
-import 'package:kuebiko_client/src/models/series.dart';
 
 import '../interfaces/cache_controller.dart';
+import '../interfaces/series.dart';
+import '../models/series.dart';
 
 class SeriesCache {
 
@@ -24,7 +25,7 @@ class SeriesCache {
   List<Series> getAll() => _elements;
 
   Future<void> update() async {
-    List<Series> libraries = await Series.getAll(_cacheController, _httpClient);
+    List<Series> libraries = await KuebikoSeries.getAll(_cacheController, _httpClient);
     libraries.forEach((Series library) {
       try {
         _elements.firstWhere((Series element) => element.id == library.id);

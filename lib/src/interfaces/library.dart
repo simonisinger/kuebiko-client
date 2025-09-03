@@ -2,7 +2,7 @@ import 'package:kuebiko_client/src/models/upload.dart';
 
 import '../interfaces/book.dart';
 import '../models/book_meta.dart';
-import '../models/series.dart';
+import 'series.dart';
 
 abstract interface class Library {
   final int id;

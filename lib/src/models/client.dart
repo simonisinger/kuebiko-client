@@ -8,6 +8,7 @@ import '../interfaces/book.dart';
 import '../interfaces/cache_controller.dart';
 import '../interfaces/client.dart';
 import '../interfaces/library.dart';
+import '../interfaces/series.dart';
 import '../interfaces/user.dart';
 import '../kuebiko_config.dart';
 import '../kuebiko_http_client.dart';
@@ -121,7 +122,7 @@ class KuebikoClient implements Client {
     required String ageRating,
     required String type,
     required List<String> locked
-  }) => Series.create(
+  }) => KuebikoSeries.create(
     name: name,
     author: author,
     description: description,

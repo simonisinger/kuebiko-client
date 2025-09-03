@@ -10,6 +10,7 @@ import 'package:kuebiko_client/src/models/upload.dart';
 
 import '../interfaces/book.dart';
 import '../interfaces/cache_controller.dart';
+import '../interfaces/series.dart';
 import 'book_meta.dart';
 
 class KuebikoLibrary implements Library {
@@ -102,7 +103,7 @@ class KuebikoLibrary implements Library {
     Response res = await _httpClient.get(uri);
     Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List seriesRaw = json['series'];
-    return seriesRaw.map((seriesSingle) => Series(
+    return seriesRaw.map((seriesSingle) => KuebikoSeries(
         seriesSingle['id'],
         seriesSingle['name'],
         seriesSingle['author'],

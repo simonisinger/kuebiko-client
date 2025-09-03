@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:kuebiko_client/src/interfaces/series.dart';
 import 'package:kuebiko_client/src/kuebiko_http_client.dart';
 import 'package:dio/dio.dart';
 import 'package:kuebiko_client/src/models/book.dart';
@@ -7,8 +8,8 @@ import 'package:kuebiko_client/src/models/book.dart';
 import '../interfaces/book.dart';
 import '../interfaces/cache_controller.dart';
 
-class Series {
-  final int id;
+class KuebikoSeries implements Series {
+  String _id;
   String _name;
   String _author;
   String _description;
@@ -22,8 +23,8 @@ class Series {
   final KuebikoHttpClient _httpClient;
   final CacheController _cacheController;
 
-  Series(
-      this.id,
+  KuebikoSeries(
+      this._id,
       this._name,
       this._author,
       this._description,
@@ -53,7 +54,7 @@ class Series {
     Response res = await httpClient.get(uri);
     Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
     List seriesRaw = json['series'];
-    return seriesRaw.map((seriesSingle) => Series(
+    return seriesRaw.map((seriesSingle) => KuebikoSeries(
         seriesSingle['id'],
         seriesSingle['name'],
         seriesSingle['author'],
@@ -102,7 +103,7 @@ class Series {
         }
     );
     Map json = res.data is Map ? res.data : jsonDecode(res.data.toString());
-    return Series(
+    return KuebikoSeries(
         json['series'],
         name,
         author,
@@ -119,64 +120,10 @@ class Series {
     );
   }
 
-  Series setName(String name){
-    this._name = name;
-    this.lockName();
-    return this;
-  }
-
-  Series setAuthor(String author){
-    this._author = author;
-    this.lockAuthor();
-    return this;
-  }
-
-  Series setDescription(String description){
-    this._description = description;
-    this.lockDescription();
-    return this;
-  }
-
-  Series setNumberOfVolumes(int numberOfVolumes){
-    this._numberOfVolumes = numberOfVolumes;
-    this.lockNumberOfVolumes();
-    return this;
-  }
-
-  Series setPublisher(String publisher){
-    this._publisher = publisher;
-    this.lockPublisher();
-    return this;
-  }
-
-  Series setLanguage(String language){
-    this._language = language;
-    this.lockLanguage();
-    return this;
-  }
-
-  Series setGenre(String genre){
-    this._genre = genre;
-    this.lockGenre();
-    return this;
-  }
-
-  Series setAgeRating(String ageRating){
-    this._ageRating = ageRating;
-    this.lockAgeRating();
-    return this;
-  }
-
-  Series setType(String type){
-    this._type = type;
-    this.lockType();
-    return this;
-  }
-
-  void update(){
+  Future<void> update() async {
     // TODO test method
     Uri uri = _httpClient.config.generateApiUri('/series/update');
-    _httpClient.put(
+    await _httpClient.put(
         uri,
         data: {
           'series': id,
@@ -328,4 +275,88 @@ class Series {
     }
     return this;
   }
+
+  @override
+  String get publisher => _publisher;
+
+  @override
+  String get ageRating => _ageRating;
+
+  @override
+  String get author => _author;
+
+  @override
+  String get description => _description;
+
+  @override
+  String get genre => _genre;
+
+  @override
+  String get language => _language;
+
+  @override
+  String get name => _name;
+
+  @override
+  int get numberOfVolumes => _numberOfVolumes;
+
+  @override
+  String get type => _type;
+
+  @override
+  void set publisher(String publisher) {
+    this._publisher = publisher;
+    this.lockPublisher();
+  }
+
+  @override
+  void set ageRating(String ageRating) {
+    this._ageRating = ageRating;
+    this.lockAgeRating();
+  }
+
+  @override
+  void set author(String author) {
+    this._author = author;
+    this.lockAuthor();
+  }
+
+  @override
+  void set description(String description) {
+    this._description = description;
+    this.lockDescription();
+  }
+
+  @override
+  set genre(String genre) {
+    this._genre = genre;
+    this.lockGenre();
+  }
+
+  @override
+  set language(String language) {
+    this._language = language;
+    this.lockLanguage();
+  }
+
+  @override
+  set name(String name) {
+    this._name = name;
+    this.lockName();
+  }
+
+  @override
+  void set numberOfVolumes(int numberOfVolumes) {
+    this._numberOfVolumes = numberOfVolumes;
+    this.lockNumberOfVolumes();
+  }
+
+  @override
+  void set type(String type) {
+    this._type = type;
+    this.lockType();
+  }
+
+  @override
+  String get id => _id;
 }

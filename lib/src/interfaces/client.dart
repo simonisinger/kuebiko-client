@@ -1,4 +1,5 @@
 import '../../kuebiko_client.dart';
+import 'series.dart';
 
 abstract interface class Client {
   // Returns the Kuebiko Config
