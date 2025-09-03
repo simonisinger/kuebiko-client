@@ -39,16 +39,6 @@ class KuebikoSeries implements Series {
       this._httpClient
   );
 
-  String getName() => this._name;
-  String getAuthor() => this._author;
-  String getDescription() => this._description;
-  int getNumberOfVolumes() => this._numberOfVolumes;
-  String getPublisher() => this._publisher;
-  String getLanguage() => this._language;
-  String getGenre() => this._genre;
-  String getAgeRating() => this._ageRating;
-  String getType() => this._type;
-
   static Future<List<Series>> getAll(CacheController cacheController, KuebikoHttpClient httpClient) async {
     Uri uri = httpClient.config.generateApiUri('/series');
     Response res = await httpClient.get(uri);
