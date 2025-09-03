@@ -11,13 +11,13 @@ import '../interfaces/cache_controller.dart';
 class KuebikoSeries implements Series {
   String _id;
   String _name;
-  String _author;
+  String? _author;
   String _description;
-  int _numberOfVolumes;
+  int? _numberOfVolumes;
   String _publisher;
   String _language;
   String _genre;
-  String _ageRating;
+  int? _ageRating;
   String _type;
   List<String> _locked;
   final KuebikoHttpClient _httpClient;
@@ -69,7 +69,7 @@ class KuebikoSeries implements Series {
     required String publisher,
     required String language,
     required String genre,
-    required String ageRating,
+    required int ageRating,
     required String type,
     required List<String> locked,
     required CacheController cacheController,
@@ -270,10 +270,10 @@ class KuebikoSeries implements Series {
   String get publisher => _publisher;
 
   @override
-  String get ageRating => _ageRating;
+  int? get ageRating => _ageRating;
 
   @override
-  String get author => _author;
+  String? get author => _author;
 
   @override
   String get description => _description;
@@ -288,7 +288,7 @@ class KuebikoSeries implements Series {
   String get name => _name;
 
   @override
-  int get numberOfVolumes => _numberOfVolumes;
+  int? get numberOfVolumes => _numberOfVolumes;
 
   @override
   String get type => _type;
@@ -300,13 +300,13 @@ class KuebikoSeries implements Series {
   }
 
   @override
-  void set ageRating(String ageRating) {
+  void set ageRating(int? ageRating) {
     this._ageRating = ageRating;
     this.lockAgeRating();
   }
 
   @override
-  void set author(String author) {
+  void set author(String? author) {
     this._author = author;
     this.lockAuthor();
   }
@@ -336,7 +336,7 @@ class KuebikoSeries implements Series {
   }
 
   @override
-  void set numberOfVolumes(int numberOfVolumes) {
+  void set numberOfVolumes(int? numberOfVolumes) {
     this._numberOfVolumes = numberOfVolumes;
     this.lockNumberOfVolumes();
   }

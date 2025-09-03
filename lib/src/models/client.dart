@@ -119,7 +119,7 @@ class KuebikoClient implements Client {
     required String publisher,
     required String language,
     required String genre,
-    required String ageRating,
+    required int ageRating,
     required String type,
     required List<String> locked
   }) => KuebikoSeries.create(

@@ -4,22 +4,22 @@ abstract interface class Series {
 
   String get id;
   String get name;
-  String get author;
+  String? get author;
   String get description;
-  int get numberOfVolumes;
+  int? get numberOfVolumes;
   String get publisher;
   String get language;
   String get genre;
-  String get ageRating;
+  int? get ageRating;
   String get type;
 
   void set name(String name);
 
-  void set author(String author);
+  void set author(String? author);
 
   void set description(String description);
 
-  void set numberOfVolumes(int numberOfVolumes);
+  void set numberOfVolumes(int? numberOfVolumes);
 
   void set publisher(String publisher);
 
@@ -27,7 +27,7 @@ abstract interface class Series {
 
   void set genre(String genre);
 
-  void set ageRating(String ageRating);
+  void set ageRating(int? ageRating);
 
   void set type(String type);
 
