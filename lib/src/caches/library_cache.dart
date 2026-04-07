@@ -14,7 +14,7 @@ class KuebikoLibraryCache implements LibraryCache {
 
   KuebikoLibraryCache(this._cacheController, this._httpClient);
 
-  Future<Library> getById(int id) async {
+  Future<Library> getById(String id) async {
     try {
       return _elements.firstWhere((element) => element.id == id);
     } catch (e){

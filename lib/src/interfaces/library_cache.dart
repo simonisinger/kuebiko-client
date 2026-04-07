@@ -2,7 +2,7 @@ import 'library.dart';
 
 abstract interface class LibraryCache {
 
-  Future<Library> getById(int id);
+  Future<Library> getById(String id);
 
   List<Library> getAll();
 

@@ -1,7 +1,7 @@
 import 'series.dart';
 
 abstract interface class SeriesCache {
-  Future<Series> getById(int id);
+  Future<Series> getById(String id);
 
   List<Series> getAll();
 

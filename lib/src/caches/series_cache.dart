@@ -13,7 +13,7 @@ class SeriesCache {
 
   SeriesCache(this._cacheController, this._httpClient);
 
-  Future<Series> getById(int id) async {
+  Future<Series> getById(String id) async {
     try {
       return _elements.firstWhere((element) => element.id == id);
     }catch (e){
